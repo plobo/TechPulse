@@ -1,0 +1,525 @@
+{
+  "_notice": "SAMPLE DATA for development and demos. Not real news; all URLs point to example.com.",
+  "categories": [
+    {
+      "id": "ai-ml",
+      "title": "AI & Machine Learning",
+      "description": "Models, training, inference and applied ML.",
+      "icon": "brain"
+    },
+    {
+      "id": "tech-news",
+      "title": "Technology News",
+      "description": "Industry and platform news for developers.",
+      "icon": "newspaper"
+    },
+    {
+      "id": "coding",
+      "title": "Coding & Programming",
+      "description": "Languages, frameworks and craft.",
+      "icon": "chevron.left.forwardslash.chevron.right"
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture & System Design",
+      "description": "Distributed systems, scaling and design.",
+      "icon": "square.stack.3d.up"
+    },
+    {
+      "id": "ai-dev-tools",
+      "title": "AI Developer Tools",
+      "description": "Assistants, agents and AI-powered tooling.",
+      "icon": "hammer"
+    },
+    {
+      "id": "research",
+      "title": "Research & Innovation",
+      "description": "Papers and emerging techniques.",
+      "icon": "atom"
+    },
+    {
+      "id": "career",
+      "title": "Engineering Career",
+      "description": "Growth, leadership and teams.",
+      "icon": "person.2"
+    },
+    {
+      "id": "tutorials",
+      "title": "Tutorials & Learning",
+      "description": "Hands-on guides and courses.",
+      "icon": "graduationcap"
+    }
+  ],
+  "sources": [
+    {
+      "id": "sample-ai-weekly",
+      "name": "Sample AI Weekly",
+      "homepage_url": "https://example.com/sources/sample-ai-weekly",
+      "feed_url": "https://example.com/sources/sample-ai-weekly/feed",
+      "type": "rss",
+      "enabled": true,
+      "attribution": "Sample AI Weekly (sample source)"
+    },
+    {
+      "id": "sample-systems-journal",
+      "name": "Sample Systems Journal",
+      "homepage_url": "https://example.com/sources/sample-systems-journal",
+      "feed_url": "https://example.com/sources/sample-systems-journal/feed",
+      "type": "rss",
+      "enabled": true,
+      "attribution": "Sample Systems Journal (sample source)"
+    },
+    {
+      "id": "sample-dev-digest",
+      "name": "Sample Dev Digest",
+      "homepage_url": "https://example.com/sources/sample-dev-digest",
+      "feed_url": "https://example.com/sources/sample-dev-digest/feed",
+      "type": "api",
+      "enabled": true,
+      "attribution": "Sample Dev Digest (sample source)"
+    },
+    {
+      "id": "sample-research-notes",
+      "name": "Sample Research Notes",
+      "homepage_url": "https://example.com/sources/sample-research-notes",
+      "feed_url": "https://example.com/sources/sample-research-notes/feed",
+      "type": "api",
+      "enabled": true,
+      "attribution": "Sample Research Notes (sample source)"
+    },
+    {
+      "id": "sample-career-letters",
+      "name": "Sample Career Letters",
+      "homepage_url": "https://example.com/sources/sample-career-letters",
+      "feed_url": "https://example.com/sources/sample-career-letters/feed",
+      "type": "rss",
+      "enabled": true,
+      "attribution": "Sample Career Letters (sample source)"
+    }
+  ],
+  "articles": [
+    {
+      "id": "s01",
+      "canonical_url": "https://example.com/sample/s01",
+      "title": "Evaluating LLM Agents with Deterministic Test Harnesses",
+      "summary": "Sample summary: an overview of evaluating LLM Agents with Deterministic Test Harnesses. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Evaluating LLM Agents with Deterministic Test Harnesses”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-ai-weekly",
+      "source_name": "Sample AI Weekly",
+      "author": "Sample Author A",
+      "published_at": "2026-11-14T08:00:00Z",
+      "category_ids": [
+        "ai-ml",
+        "ai-dev-tools"
+      ],
+      "tags": [
+        "llm",
+        "agents",
+        "testing"
+      ],
+      "reading_time_minutes": 4,
+      "content_availability": "excerpt_only",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s02",
+      "canonical_url": "https://example.com/sample/s02",
+      "title": "A Practical Guide to Swift Structured Concurrency",
+      "summary": "Sample summary: an overview of a Practical Guide to Swift Structured Concurrency. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “A Practical Guide to Swift Structured Concurrency”. Read the original at the publisher for the full piece.",
+      "content": "This is sample tutorial text written for the TechPulse AI demo. Structured concurrency ties the lifetime of child tasks to a parent scope. Use async let for a fixed number of concurrent operations and task groups for a dynamic number. Cancellation propagates from parent to children automatically, so long-running work should check Task.isCancelled or call Task.checkCancellation at sensible points. Actors protect shared mutable state, and @MainActor keeps UI-facing state on the main thread.",
+      "image_url": null,
+      "source_id": "sample-dev-digest",
+      "source_name": "Sample Dev Digest",
+      "author": "Sample Author B",
+      "published_at": "2026-11-14T05:00:00Z",
+      "category_ids": [
+        "coding",
+        "tutorials"
+      ],
+      "tags": [
+        "swift",
+        "concurrency"
+      ],
+      "reading_time_minutes": null,
+      "content_availability": "full",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s03",
+      "canonical_url": "https://example.com/sample/s03",
+      "title": "Designing Idempotent APIs for Payment Workflows",
+      "summary": "Sample summary: an overview of designing Idempotent APIs for Payment Workflows. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Designing Idempotent APIs for Payment Workflows”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-systems-journal",
+      "source_name": "Sample Systems Journal",
+      "author": null,
+      "published_at": "2026-11-14T03:00:00Z",
+      "category_ids": [
+        "architecture"
+      ],
+      "tags": [
+        "api-design",
+        "distributed-systems"
+      ],
+      "reading_time_minutes": 9,
+      "content_availability": "excerpt_only",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "s04",
+      "canonical_url": "https://example.com/sample/s04",
+      "title": "Platform Release Roundup: What Changed This Week",
+      "summary": "Sample summary: an overview of platform Release Roundup: What Changed This Week. This item is demo content, not a real article.",
+      "excerpt": null,
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-dev-digest",
+      "source_name": "Sample Dev Digest",
+      "author": null,
+      "published_at": "2026-11-14T00:00:00Z",
+      "category_ids": [
+        "tech-news"
+      ],
+      "tags": [
+        "releases",
+        "ios"
+      ],
+      "reading_time_minutes": 5,
+      "content_availability": "link_only",
+      "difficulty": null
+    },
+    {
+      "id": "s05",
+      "canonical_url": "https://example.com/sample/s05",
+      "title": "Retrieval-Augmented Generation: Chunking Trade-offs",
+      "summary": "Sample summary: an overview of retrieval-Augmented Generation: Chunking Trade-offs. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Retrieval-Augmented Generation: Chunking Trade-offs”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-research-notes",
+      "source_name": "Sample Research Notes",
+      "author": "Sample Author C",
+      "published_at": "2026-11-13T20:00:00Z",
+      "category_ids": [
+        "research",
+        "ai-ml"
+      ],
+      "tags": [
+        "llm",
+        "rag"
+      ],
+      "reading_time_minutes": 9,
+      "content_availability": "excerpt_only",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "s06",
+      "canonical_url": "https://example.com/sample/s06",
+      "title": "Writing Better Code Review Comments",
+      "summary": "Sample summary: an overview of writing Better Code Review Comments. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Writing Better Code Review Comments”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-career-letters",
+      "source_name": "Sample Career Letters",
+      "author": "Sample Author D",
+      "published_at": "2026-11-13T16:00:00Z",
+      "category_ids": [
+        "career"
+      ],
+      "tags": [
+        "code-review",
+        "teams"
+      ],
+      "reading_time_minutes": 6,
+      "content_availability": "excerpt_only",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "s07",
+      "canonical_url": "https://example.com/sample/s07",
+      "title": "Using AI Coding Assistants Without Losing Context",
+      "summary": "Sample summary: an overview of using AI Coding Assistants Without Losing Context. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Using AI Coding Assistants Without Losing Context”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-ai-weekly",
+      "source_name": "Sample AI Weekly",
+      "author": null,
+      "published_at": "2026-11-13T12:00:00Z",
+      "category_ids": [
+        "ai-dev-tools"
+      ],
+      "tags": [
+        "agents",
+        "productivity"
+      ],
+      "reading_time_minutes": 10,
+      "content_availability": "excerpt_only",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "s08",
+      "canonical_url": "https://example.com/sample/s08",
+      "title": "Event Sourcing vs. CRUD: Choosing a Persistence Model",
+      "summary": "Sample summary: an overview of event Sourcing vs. CRUD: Choosing a Persistence Model. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Event Sourcing vs. CRUD: Choosing a Persistence Model”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-systems-journal",
+      "source_name": "Sample Systems Journal",
+      "author": "Sample Author E",
+      "published_at": "2026-11-13T06:00:00Z",
+      "category_ids": [
+        "architecture"
+      ],
+      "tags": [
+        "event-sourcing",
+        "distributed-systems"
+      ],
+      "reading_time_minutes": 9,
+      "content_availability": "excerpt_only",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "s09",
+      "canonical_url": "https://example.com/sample/s09",
+      "title": "SwiftData Migrations from Day One",
+      "summary": "Sample summary: an overview of swiftData Migrations from Day One. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “SwiftData Migrations from Day One”. Read the original at the publisher for the full piece.",
+      "content": "This is sample tutorial text written for the TechPulse AI demo. Define a VersionedSchema for your first SwiftData model version even before you need a migration. When the schema changes, add a new version and a SchemaMigrationPlan with lightweight or custom stages. Test migrations by creating a store with the old schema, inserting records, and reopening it with the new plan.",
+      "image_url": null,
+      "source_id": "sample-dev-digest",
+      "source_name": "Sample Dev Digest",
+      "author": "Sample Author B",
+      "published_at": "2026-11-13T02:00:00Z",
+      "category_ids": [
+        "coding",
+        "tutorials"
+      ],
+      "tags": [
+        "swift",
+        "swiftdata"
+      ],
+      "reading_time_minutes": null,
+      "content_availability": "full",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s10",
+      "canonical_url": "https://example.com/sample/s10",
+      "title": "Quantization Techniques for On-Device Models",
+      "summary": "Sample summary: an overview of quantization Techniques for On-Device Models. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Quantization Techniques for On-Device Models”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-research-notes",
+      "source_name": "Sample Research Notes",
+      "author": null,
+      "published_at": "2026-11-12T16:00:00Z",
+      "category_ids": [
+        "research",
+        "ai-ml"
+      ],
+      "tags": [
+        "on-device",
+        "llm"
+      ],
+      "reading_time_minutes": 9,
+      "content_availability": "excerpt_only",
+      "difficulty": "advanced"
+    },
+    {
+      "id": "s11",
+      "canonical_url": "https://example.com/sample/s11",
+      "title": "From Senior to Staff: Scoping Ambiguous Work",
+      "summary": "Sample summary: an overview of from Senior to Staff: Scoping Ambiguous Work. This item is demo content, not a real article.",
+      "excerpt": null,
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-career-letters",
+      "source_name": "Sample Career Letters",
+      "author": "Sample Author D",
+      "published_at": "2026-11-12T06:00:00Z",
+      "category_ids": [
+        "career"
+      ],
+      "tags": [
+        "leadership"
+      ],
+      "reading_time_minutes": 5,
+      "content_availability": "link_only",
+      "difficulty": null
+    },
+    {
+      "id": "s12",
+      "canonical_url": "https://example.com/sample/s12",
+      "title": "Rate Limiting Strategies at the Edge",
+      "summary": "Sample summary: an overview of rate Limiting Strategies at the Edge. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Rate Limiting Strategies at the Edge”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-systems-journal",
+      "source_name": "Sample Systems Journal",
+      "author": null,
+      "published_at": "2026-11-11T20:00:00Z",
+      "category_ids": [
+        "architecture",
+        "tech-news"
+      ],
+      "tags": [
+        "api-design",
+        "networking"
+      ],
+      "reading_time_minutes": 8,
+      "content_availability": "excerpt_only",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s13",
+      "canonical_url": "https://example.com/sample/s13",
+      "title": "Building a Kotlin Multiplatform Networking Layer",
+      "summary": "Sample summary: an overview of building a Kotlin Multiplatform Networking Layer. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Building a Kotlin Multiplatform Networking Layer”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-dev-digest",
+      "source_name": "Sample Dev Digest",
+      "author": "Sample Author F",
+      "published_at": "2026-11-11T08:00:00Z",
+      "category_ids": [
+        "coding"
+      ],
+      "tags": [
+        "kotlin",
+        "networking"
+      ],
+      "reading_time_minutes": 6,
+      "content_availability": "excerpt_only",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s14",
+      "canonical_url": "https://example.com/sample/s14",
+      "title": "Prompt Injection: Treating Content as Untrusted Input",
+      "summary": "Sample summary: an overview of prompt Injection: Treating Content as Untrusted Input. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Prompt Injection: Treating Content as Untrusted Input”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-ai-weekly",
+      "source_name": "Sample AI Weekly",
+      "author": null,
+      "published_at": "2026-11-10T20:00:00Z",
+      "category_ids": [
+        "ai-ml",
+        "ai-dev-tools"
+      ],
+      "tags": [
+        "security",
+        "llm"
+      ],
+      "reading_time_minutes": 4,
+      "content_availability": "excerpt_only",
+      "difficulty": "intermediate"
+    },
+    {
+      "id": "s15",
+      "canonical_url": "https://example.com/sample/s15",
+      "title": "Hands-on: Your First Vector Search Index",
+      "summary": "Sample summary: an overview of hands-on: Your First Vector Search Index. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Hands-on: Your First Vector Search Index”. Read the original at the publisher for the full piece.",
+      "content": "This is sample tutorial text written for the TechPulse AI demo. A vector index stores embeddings so that nearest-neighbour queries return semantically similar documents. Start with exact search over a small dataset, measure recall, then introduce an approximate index once latency matters.",
+      "image_url": null,
+      "source_id": "sample-research-notes",
+      "source_name": "Sample Research Notes",
+      "author": "Sample Author C",
+      "published_at": "2026-11-10T08:00:00Z",
+      "category_ids": [
+        "tutorials",
+        "ai-ml"
+      ],
+      "tags": [
+        "rag",
+        "search"
+      ],
+      "reading_time_minutes": null,
+      "content_availability": "full",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "s16",
+      "canonical_url": "https://example.com/sample/s16",
+      "title": "Observability Basics: Logs, Metrics and Traces",
+      "summary": "Sample summary: an overview of observability Basics: Logs, Metrics and Traces. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Observability Basics: Logs, Metrics and Traces”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-systems-journal",
+      "source_name": "Sample Systems Journal",
+      "author": null,
+      "published_at": "2026-11-09T18:00:00Z",
+      "category_ids": [
+        "tutorials",
+        "architecture"
+      ],
+      "tags": [
+        "observability"
+      ],
+      "reading_time_minutes": 9,
+      "content_availability": "excerpt_only",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "s17",
+      "canonical_url": "https://example.com/sample/s17",
+      "title": "Open Source Maintainer Burnout and Sustainable Pace",
+      "summary": "Sample summary: an overview of open Source Maintainer Burnout and Sustainable Pace. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Open Source Maintainer Burnout and Sustainable Pace”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-career-letters",
+      "source_name": "Sample Career Letters",
+      "author": null,
+      "published_at": "2026-11-08T22:00:00Z",
+      "category_ids": [
+        "career",
+        "tech-news"
+      ],
+      "tags": [
+        "open-source",
+        "teams"
+      ],
+      "reading_time_minutes": 8,
+      "content_availability": "excerpt_only",
+      "difficulty": "beginner"
+    },
+    {
+      "id": "s18",
+      "canonical_url": "https://example.com/sample/s18",
+      "title": "Sparse Mixture-of-Experts Explained",
+      "summary": "Sample summary: an overview of sparse Mixture-of-Experts Explained. This item is demo content, not a real article.",
+      "excerpt": "Sample excerpt for “Sparse Mixture-of-Experts Explained”. Read the original at the publisher for the full piece.",
+      "content": null,
+      "image_url": null,
+      "source_id": "sample-research-notes",
+      "source_name": "Sample Research Notes",
+      "author": null,
+      "published_at": "2026-11-08T02:00:00Z",
+      "category_ids": [
+        "research"
+      ],
+      "tags": [
+        "llm",
+        "architecture"
+      ],
+      "reading_time_minutes": 7,
+      "content_availability": "excerpt_only",
+      "difficulty": "advanced"
+    }
+  ]
+}
