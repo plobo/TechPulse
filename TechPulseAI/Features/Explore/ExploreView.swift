@@ -120,6 +120,12 @@ struct ArticleListScreen: View {
                             Task { await viewModel.loadMoreIfNeeded(after: id) }
                         }
                     }
+                    if viewModel.isLoadingMore {
+                        ProgressView().frame(maxWidth: .infinity).accessibilityLabel("Loading more")
+                    } else if let error = viewModel.loadMoreError {
+                        Button("Couldn’t load more — \(error.actionTitle ?? "Retry")") { Task { await viewModel.retryLoadMore() } }
+                            .frame(maxWidth: .infinity, minHeight: Layout.minTouchTarget)
+                    }
                 }
             }
             .padding(.vertical, Spacing.m)
@@ -147,5 +153,7 @@ struct ArticleListScreen: View {
         }
         .refreshable { await viewModel.load() }
         .task { if viewModel.state.value == nil { await viewModel.load() } }
+        .onChange(of: viewModel.dateRange) { Task { await viewModel.fillIfNeeded() } }
+        .onChange(of: viewModel.difficulty) { Task { await viewModel.fillIfNeeded() } }
     }
 }

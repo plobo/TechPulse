@@ -46,9 +46,13 @@ final class LibraryStore {
     }
 
     func removeBookmark(_ id: ArticleID) async {
-        try? await repository.removeBookmark(articleID: id)
-        bookmarkedIDs.remove(id)
-        revision += 1
+        do {
+            try await repository.removeBookmark(articleID: id)
+            bookmarkedIDs.remove(id)
+            revision += 1
+        } catch {
+            lastErrorMessage = "Couldn’t remove bookmark."
+        }
     }
 
     func recordOpen(_ article: Article) async {
@@ -61,10 +65,17 @@ final class LibraryStore {
         }
     }
 
-    func clearHistory() async {
-        try? await repository.clearHistory()
-        readIDs = []
-        revision += 1
+    @discardableResult
+    func clearHistory() async -> Bool {
+        do {
+            try await repository.clearHistory()
+            readIDs = []
+            revision += 1
+            return true
+        } catch {
+            lastErrorMessage = "Couldn’t clear reading history."
+            return false
+        }
     }
 
     @discardableResult
@@ -74,9 +85,16 @@ final class LibraryStore {
         return note
     }
 
-    func deleteNote(_ id: UUID) async {
-        try? await repository.deleteNote(id: id)
-        revision += 1
+    @discardableResult
+    func deleteNote(_ id: UUID) async -> Bool {
+        do {
+            try await repository.deleteNote(id: id)
+            revision += 1
+            return true
+        } catch {
+            lastErrorMessage = "Couldn’t delete note."
+            return false
+        }
     }
 
     func updatePreferences(_ change: (inout UserPreferences) -> Void) async {
@@ -90,14 +108,20 @@ final class LibraryStore {
         }
     }
 
-    func clearCache() async -> Int {
-        let removed = (try? await repository.clearCache()) ?? 0
-        revision += 1
-        return removed
+    /// Returns the number of cached articles removed, or nil on failure.
+    func clearCache() async -> Int? {
+        do {
+            let removed = try await repository.clearCache()
+            revision += 1
+            return removed
+        } catch {
+            lastErrorMessage = "Couldn’t clear the cache."
+            return nil
+        }
     }
 
-    func deleteAllData() async {
-        try? await repository.deleteAllData()
+    func deleteAllData() async throws {
+        try await repository.deleteAllData()
         await load()
         revision += 1
     }

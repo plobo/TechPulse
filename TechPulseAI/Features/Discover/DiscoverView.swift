@@ -21,6 +21,13 @@ struct DiscoverView: View {
                     .buttonStyle(.plain)
                     .padding(.horizontal, Spacing.l)
                 }
+                if let error = viewModel.refreshError {
+                    Label("Couldn’t refresh — \(error.title.lowercased()). Showing earlier results.", systemImage: error.systemImage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, Spacing.l)
+                        .accessibilityIdentifier("discover.refreshError")
+                }
                 categoryChips
                 if !viewModel.trendingTopics.isEmpty { trending }
                 feedContent
@@ -33,7 +40,7 @@ struct DiscoverView: View {
         .navigationTitle("Discover")
         .refreshable { await viewModel.load() }
         .task { if viewModel.feed.value == nil { await viewModel.load() } }
-        .onChange(of: library.preferences) { Task { await viewModel.load() } }
+        .onChange(of: library.preferences) { viewModel.applyPreferences() }
     }
 
     private var categoryChips: some View {

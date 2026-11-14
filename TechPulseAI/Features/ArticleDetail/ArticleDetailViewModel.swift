@@ -85,7 +85,6 @@ final class ArticleDetailViewModel {
     }
 
     func deleteNote(_ note: ArticleNote) async {
-        await library.deleteNote(note.id)
-        notes.removeAll { $0.id == note.id }
+        if await library.deleteNote(note.id) { notes.removeAll { $0.id == note.id } }
     }
 }

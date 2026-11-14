@@ -82,6 +82,7 @@ actor StubContentRepository: ArticleRepository, CatalogRepository, BriefingRepos
     var store: [Article] = []
     var searchResults: [Article] = []
     var searchLog: [SearchQuery] = []
+    var delays: [CategoryID?: Duration] = [:]
 
     init(pages: [String?: Result<ArticlePage, APIError>] = [:], store: [Article] = []) {
         self.pages = pages
@@ -91,9 +92,11 @@ actor StubContentRepository: ArticleRepository, CatalogRepository, BriefingRepos
     func setPage(_ cursor: String?, _ result: Result<ArticlePage, APIError>) { pages[cursor] = result }
     func setBriefing(_ result: Result<DailyBriefing, APIError>) { briefingResult = result }
     func setSearchResults(_ results: [Article]) { searchResults = results }
+    func setDelay(_ category: CategoryID?, _ delay: Duration) { delays[category] = delay }
 
     func articles(_ query: ArticleQuery) async throws -> ArticlePage {
         categoryFilterLog.append(query.categoryID)
+        if let delay = delays[query.categoryID] { try await Task.sleep(for: delay) }
         let result = pages[query.cursor] ?? .success(ArticlePage(articles: [], nextCursor: nil))
         let page = try result.get()
         guard let cat = query.categoryID else { return page }
@@ -130,4 +133,34 @@ extension AppDependencies {
                                ai: UnavailableAIService(), dateProvider: FixedDateProvider(now: TestData.now),
                                isSampleData: false)
     }
+}
+
+/// Library repository whose mutations always fail (reads return one bookmark "ai").
+struct FailingLibraryRepository: LibraryRepository {
+    struct Failure: Error {}
+    func bookmarks() async throws -> [Bookmark] { [Bookmark(articleID: "ai", createdAt: TestData.now)] }
+    func toggleBookmark(_ article: Article) async throws -> Bool { throw Failure() }
+    func removeBookmark(articleID: ArticleID) async throws { throw Failure() }
+    func cachedArticles(ids: [ArticleID]) async throws -> [Article] { [] }
+    func recordOpen(_ article: Article) async throws { throw Failure() }
+    func history() async throws -> [ReadingHistoryEntry] {
+        [ReadingHistoryEntry(articleID: "ai", lastOpenedAt: TestData.now, openCount: 1)]
+    }
+    func clearHistory() async throws { throw Failure() }
+    func notes(for articleID: ArticleID) async throws -> [ArticleNote] { [] }
+    func allNotes() async throws -> [ArticleNote] { [] }
+    func saveNote(id: UUID?, articleID: ArticleID, text: String) async throws -> ArticleNote { throw Failure() }
+    func deleteNote(id: UUID) async throws { throw Failure() }
+    func clearCache() async throws -> Int { throw Failure() }
+    func exportData() async throws -> Data { Data("{}".utf8) }
+    func deleteAllData() async throws { throw Failure() }
+    func preferences() async throws -> UserPreferences { .default }
+    func savePreferences(_ preferences: UserPreferences) async throws { throw Failure() }
+}
+
+final class CallFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var _count = 0
+    var count: Int { lock.withLock { _count } }
+    func hit() { lock.withLock { _count += 1 } }
 }

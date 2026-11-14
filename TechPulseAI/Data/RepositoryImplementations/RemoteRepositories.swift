@@ -7,7 +7,9 @@ struct RemoteContentRepository: ArticleRepository, CatalogRepository, BriefingRe
     let dateProvider: any DateProvider
 
     func articles(_ query: ArticleQuery) async throws -> ArticlePage {
-        let dto = try await client.send(.articles(category: query.categoryID, cursor: query.cursor, limit: query.limit),
+        // Single source is filtered server-side; multiple sources fall back to client filtering.
+        let source = query.sourceIDs.count == 1 ? query.sourceIDs.first : nil
+        let dto = try await client.send(.articles(category: query.categoryID, source: source, cursor: query.cursor, limit: query.limit),
                                         as: ArticlePageDTO.self)
         let page = ArticleMapper.map(dto, fetchedAt: dateProvider.now)
         let filtered = query.sourceIDs.isEmpty ? page.articles : page.articles.filter { query.sourceIDs.contains($0.sourceID) }

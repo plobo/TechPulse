@@ -68,9 +68,14 @@ final class ArticleListViewModel {
     private(set) var state: LoadState<Void> = .idle
     private(set) var title: String
     private(set) var isLoadingMore = false
+    private(set) var loadMoreError: UserFacingError?
     var difficulty: Difficulty?
     var dateRange: DateRangeFilter = .any
 
+    /// Keep fetching while filters leave fewer than this many visible items.
+    private let minimumVisible = 10
+    private let maxAutoFillPages = 5
+    private var generation = 0
     private var accumulator = FeedAccumulator()
     private let dependencies: AppDependencies
 
@@ -90,6 +95,8 @@ final class ArticleListViewModel {
         }
     }
 
+    var hasMore: Bool { accumulator.hasMore }
+
     var visibleItems: [FeedItem] {
         let from = dateRange.lowerBound(now: dependencies.dateProvider.now)
         return accumulator.articles
@@ -104,29 +111,68 @@ final class ArticleListViewModel {
     var hasActiveFilters: Bool { difficulty != nil || dateRange != .any }
 
     func load() async {
+        generation += 1
+        let current = generation
         if accumulator.articles.isEmpty { state = .loading }
+        loadMoreError = nil
         do {
             if case let .source(id) = kind, let source = try? await dependencies.catalog.sources().first(where: { $0.id == id }) {
                 title = source.name
             }
             let page = try await dependencies.articles.articles(query)
+            guard current == generation else { return }
             var fresh = FeedAccumulator()
             fresh.append(page)
             accumulator = fresh
+            await fillIfNeeded()
             state = accumulator.articles.isEmpty ? .empty : .loaded(())
         } catch is CancellationError {
         } catch {
-            state = .failed(UserFacingError(error))
+            if current == generation { state = .failed(UserFacingError(error)) }
         }
     }
 
+    /// Triggered when the last *visible* (filtered) item appears.
     func loadMoreIfNeeded(after id: ArticleID) async {
-        guard accumulator.hasMore, !isLoadingMore, accumulator.articles.last?.id == id else { return }
+        guard visibleItems.last?.id == id else { return }
+        await fetchNextPage()
+        await fillIfNeeded()
+    }
+
+    func retryLoadMore() async {
+        loadMoreError = nil
+        await fetchNextPage()
+        await fillIfNeeded()
+    }
+
+    /// Fetches more pages (bounded) while filters hide most fetched items.
+    func fillIfNeeded() async {
+        var pages = 0
+        while visibleItems.count < minimumVisible, accumulator.hasMore, loadMoreError == nil, pages < maxAutoFillPages {
+            guard await fetchNextPage() else { return }
+            pages += 1
+        }
+    }
+
+    @discardableResult
+    private func fetchNextPage() async -> Bool {
+        guard accumulator.hasMore, !isLoadingMore, accumulator.nextCursor != nil else { return false }
+        let current = generation
         isLoadingMore = true
         defer { isLoadingMore = false }
         var next = query
         next.cursor = accumulator.nextCursor
-        if let page = try? await dependencies.articles.articles(next) { accumulator.append(page) }
+        do {
+            let page = try await dependencies.articles.articles(next)
+            guard current == generation else { return false }
+            accumulator.append(page)
+            return true
+        } catch is CancellationError {
+            return false
+        } catch {
+            if current == generation { loadMoreError = UserFacingError(error) }
+            return false
+        }
     }
 }
 

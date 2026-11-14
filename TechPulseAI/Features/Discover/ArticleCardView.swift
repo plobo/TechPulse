@@ -49,7 +49,8 @@ struct ArticleCardView: View {
         .cardStyle()
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(ArticleFormatting.accessibilityLabel(for: article, now: now, isBookmarked: isBookmarked, isRead: isRead))
+        .accessibilityLabel(ArticleFormatting.accessibilityLabel(for: article, now: now, isBookmarked: isBookmarked, isRead: isRead,
+                                                                   reason: reason))
         .accessibilityHint("Opens the article")
         .accessibilityAddTraits(.isButton)
         .accessibilityAction(named: isBookmarked ? "Remove bookmark" : "Bookmark") {

@@ -17,12 +17,16 @@ struct SystemNotificationAuthorizer: NotificationAuthorizing {
 final class SettingsViewModel {
     let library: LibraryStore
     private let notifications: any NotificationAuthorizing
+    private let clearNetworkCache: @Sendable () -> Void
+    private var exportedFiles: [URL] = []
     var notificationMessage: String?
     var storageMessage: String?
 
-    init(library: LibraryStore, notifications: any NotificationAuthorizing = SystemNotificationAuthorizer()) {
+    init(library: LibraryStore, notifications: any NotificationAuthorizing = SystemNotificationAuthorizer(),
+         clearNetworkCache: @escaping @Sendable () -> Void = {}) {
         self.library = library
         self.notifications = notifications
+        self.clearNetworkCache = clearNetworkCache
     }
 
     var preferences: UserPreferences { library.preferences }
@@ -104,6 +108,7 @@ final class SettingsViewModel {
             let stamp = Date().formatted(.iso8601.year().month().day())
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("TechPulse-Export-\(stamp).json")
             try data.write(to: url, options: [.atomic, .completeFileProtection])
+            exportedFiles.append(url)
             return url
         } catch {
             storageMessage = "Export failed."
@@ -112,17 +117,36 @@ final class SettingsViewModel {
     }
 
     func clearCache() async {
-        let removed = await library.clearCache()
+        guard let removed = await library.clearCache() else {
+            storageMessage = "Couldn’t clear the cache. Please try again."
+            return
+        }
+        clearNetworkCache()
         storageMessage = removed == 0 ? "Cache is already empty." : "Removed \(removed) cached article\(removed == 1 ? "" : "s")."
     }
 
     func clearHistory() async {
-        await library.clearHistory()
-        storageMessage = "Reading history cleared."
+        storageMessage = await library.clearHistory() ? "Reading history cleared." : "Couldn’t clear reading history. Please try again."
     }
 
+    /// Deletes the store, any export files we wrote, and cached network responses.
     func deleteAllData() async {
-        await library.deleteAllData()
+        do {
+            try await library.deleteAllData()
+        } catch {
+            storageMessage = "Couldn’t delete all data. Please try again."
+            return
+        }
+        removeExportFiles()
+        clearNetworkCache()
         storageMessage = "All on-device data deleted."
+    }
+
+    private func removeExportFiles() {
+        let tmp = FileManager.default.temporaryDirectory
+        let leftovers = (try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: nil))?
+            .filter { $0.lastPathComponent.hasPrefix("TechPulse-Export-") } ?? []
+        for url in Set(exportedFiles + leftovers) { try? FileManager.default.removeItem(at: url) }
+        exportedFiles = []
     }
 }

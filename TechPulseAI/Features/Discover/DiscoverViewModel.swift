@@ -39,8 +39,14 @@ final class DiscoverViewModel {
     private(set) var selectedCategoryID: CategoryID?
     private(set) var isLoadingMore = false
     private(set) var loadMoreError: UserFacingError?
+    /// A refresh failed while older content is still on screen.
+    private(set) var refreshError: UserFacingError?
 
     private var accumulator = FeedAccumulator()
+    /// Display order. Already-shown items never move when later pages arrive.
+    private var displayed: [FeedItem] = []
+    /// Incremented per feed reset; responses from older generations are dropped.
+    private var generation = 0
     private let dependencies: AppDependencies
     private let library: LibraryStore
     private let pageSize = 20
@@ -64,55 +70,77 @@ final class DiscoverViewModel {
     func select(category: CategoryID?) async {
         guard category != selectedCategoryID || feed.value == nil else { return }
         selectedCategoryID = category
+        accumulator.reset()
+        displayed = []
+        feed = .loading
         await load()
     }
 
     /// Initial load and pull-to-refresh.
     func load() async {
+        generation += 1
+        let current = generation
         if feed.value == nil { feed = .loading }
+        refreshError = nil
         loadMoreError = nil
-        async let briefingTask = loadBriefing()
+        async let briefingTask: Void = loadBriefing()
         async let categoriesTask = try? dependencies.catalog.categories()
         do {
             let page = try await dependencies.articles.articles(ArticleQuery(categoryID: selectedCategoryID, limit: pageSize))
-            var fresh = FeedAccumulator()
-            fresh.append(page)
-            accumulator = fresh
-            publishFeed()
+            if current == generation {
+                var fresh = FeedAccumulator()
+                fresh.append(page)
+                accumulator = fresh
+                displayed = FeedPersonalizer.rank(fresh.articles, preferences: library.preferences)
+                publishFeed()
+            }
         } catch is CancellationError {
-            // View went away or selection changed; keep previous state.
+            // View went away; keep previous state.
         } catch {
-            if feed.value == nil { feed = .failed(UserFacingError(error)) }
+            if current == generation {
+                if feed.value == nil { feed = .failed(UserFacingError(error)) } else { refreshError = UserFacingError(error) }
+            }
         }
         await briefingTask
         if let cats = await categoriesTask, !cats.isEmpty { categories = cats }
     }
 
+    /// Re-rank locally after a preference change (no refetch).
+    func applyPreferences() {
+        guard feed.value != nil else { return }
+        displayed = FeedPersonalizer.rank(accumulator.articles, preferences: library.preferences)
+        publishFeed()
+    }
+
     func loadMoreIfNeeded(after articleID: ArticleID) async {
         guard canLoadMore, !isLoadingMore,
-              let index = accumulator.articles.firstIndex(where: { $0.id == articleID }),
-              index >= accumulator.articles.count - 3 else { return }
+              let index = displayed.firstIndex(where: { $0.id == articleID }),
+              index >= displayed.count - 3 else { return }
+        let current = generation
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
             let page = try await dependencies.articles.articles(
                 ArticleQuery(categoryID: selectedCategoryID, cursor: accumulator.nextCursor, limit: pageSize))
+            guard current == generation else { return }
+            let shown = Set(displayed.map(\.id))
             accumulator.append(page)
+            let newArticles = accumulator.articles.filter { !shown.contains($0.id) }
+            displayed += FeedPersonalizer.rank(newArticles, preferences: library.preferences)
             publishFeed()
         } catch is CancellationError {
         } catch {
-            loadMoreError = UserFacingError(error)
+            if current == generation { loadMoreError = UserFacingError(error) }
         }
     }
 
     func retryLoadMore() async {
         loadMoreError = nil
-        if let last = accumulator.articles.last { await loadMoreIfNeeded(after: last.id) }
+        if let last = displayed.last { await loadMoreIfNeeded(after: last.id) }
     }
 
     private func publishFeed() {
-        let ranked = FeedPersonalizer.rank(accumulator.articles, preferences: library.preferences)
-        feed = ranked.isEmpty ? .empty : .loaded(ranked)
+        feed = displayed.isEmpty ? .empty : .loaded(displayed)
     }
 
     private func loadBriefing() async {

@@ -7,7 +7,8 @@ struct SettingsView: View {
     init(dependencies: AppDependencies) { self.dependencies = dependencies }
 
     var body: some View {
-        SettingsForm(viewModel: SettingsViewModel(library: library), isAIServiceAvailable: dependencies.ai.isAvailable,
+        SettingsForm(viewModel: SettingsViewModel(library: library, clearNetworkCache: dependencies.clearNetworkCache),
+                     isAIServiceAvailable: dependencies.ai.isAvailable,
                      isSampleData: dependencies.isSampleData)
     }
 }
@@ -49,7 +50,12 @@ private struct SettingsForm: View {
         }
         .navigationTitle("Profile")
         .confirmationDialog("Delete all on-device data?", isPresented: $confirmDeleteAll, titleVisibility: .visible) {
-            Button("Delete Everything", role: .destructive) { Task { await viewModel.deleteAllData() } }
+            Button("Delete Everything", role: .destructive) {
+                Task {
+                    await viewModel.deleteAllData()
+                    exportURL = nil
+                }
+            }
         } message: {
             Text("Bookmarks, notes, history, cached articles and preferences will be permanently removed from this device.")
         }

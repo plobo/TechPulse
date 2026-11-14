@@ -12,6 +12,8 @@ struct AppDependencies: Sendable {
     let dateProvider: any DateProvider
     /// True when content comes from bundled sample fixtures (UI shows a badge).
     let isSampleData: Bool
+    /// Clears cached HTTP responses (feeds, searches, images).
+    var clearNetworkCache: @Sendable () -> Void = {}
 
     static func live(configuration: AppConfiguration) throws -> AppDependencies {
         let dateProvider = SystemDateProvider()
@@ -25,10 +27,12 @@ struct AppDependencies: Sendable {
             return AppDependencies(articles: sample, catalog: sample, briefing: sample, library: library,
                                    ai: UnavailableAIService(), dateProvider: dateProvider, isSampleData: true)
         case let .remote(baseURL):
-            let client = APIClient(baseURL: baseURL, http: makeSession())
+            let session = makeSession()
+            let client = APIClient(baseURL: baseURL, http: session)
             let remote = RemoteContentRepository(client: client, dateProvider: dateProvider)
             return AppDependencies(articles: remote, catalog: remote, briefing: remote, library: library,
-                                   ai: UnavailableAIService(), dateProvider: dateProvider, isSampleData: false)
+                                   ai: UnavailableAIService(), dateProvider: dateProvider, isSampleData: false,
+                                   clearNetworkCache: { session.configuration.urlCache?.removeAllCachedResponses() })
         }
     }
 

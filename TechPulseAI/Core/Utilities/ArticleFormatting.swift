@@ -22,7 +22,7 @@ enum ArticleFormatting {
     }
 
     /// Single VoiceOver sentence for an article card.
-    static func accessibilityLabel(for article: Article, now: Date, isBookmarked: Bool, isRead: Bool) -> String {
+    static func accessibilityLabel(for article: Article, now: Date, isBookmarked: Bool, isRead: Bool, reason: String? = nil) -> String {
         [
             article.title,
             "from \(article.sourceName)",
@@ -31,6 +31,7 @@ enum ArticleFormatting {
             readingTime(article.readingTimeMinutes),
             isBookmarked ? "Bookmarked" : nil,
             isRead ? "Read" : "Unread",
+            reason,
         ].compactMap { $0 }.joined(separator: ", ")
     }
 }

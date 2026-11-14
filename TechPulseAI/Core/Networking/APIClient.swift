@@ -42,9 +42,10 @@ struct Endpoint: Sendable, Hashable {
     var path: String
     var queryItems: [URLQueryItem] = []
 
-    static func articles(category: CategoryID?, cursor: String?, limit: Int) -> Endpoint {
+    static func articles(category: CategoryID?, source: SourceID? = nil, cursor: String?, limit: Int) -> Endpoint {
         Endpoint(path: "/v1/articles", queryItems: [
             category.map { URLQueryItem(name: "category", value: $0) },
+            source.map { URLQueryItem(name: "source", value: $0) },
             cursor.map { URLQueryItem(name: "cursor", value: $0) },
             URLQueryItem(name: "limit", value: String(limit)),
         ].compactMap { $0 })

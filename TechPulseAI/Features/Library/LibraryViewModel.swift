@@ -76,16 +76,14 @@ final class LibraryViewModel {
 
     func removeBookmark(_ id: ArticleID) async {
         await library.removeBookmark(id)
-        articles.removeAll { $0.id == id }
+        if !library.isBookmarked(id) { articles.removeAll { $0.id == id } }
     }
 
     func clearHistory() async {
-        await library.clearHistory()
-        if section == .history { articles = [] }
+        if await library.clearHistory(), section == .history { articles = [] }
     }
 
     func deleteNote(_ item: NoteItem) async {
-        await library.deleteNote(item.note.id)
-        notes.removeAll { $0.id == item.id }
+        if await library.deleteNote(item.note.id) { notes.removeAll { $0.id == item.id } }
     }
 }
