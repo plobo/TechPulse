@@ -139,6 +139,13 @@ enum TechPulseMigrationPlan: SchemaMigrationPlan {
 }
 
 enum PersistenceController {
+    /// Application Support/TechPulse/TechPulse.store (directory created on first launch).
+    static func defaultStoreURL() throws -> URL {
+        let directory = URL.applicationSupportDirectory.appending(path: "TechPulse", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appending(path: "TechPulse.store")
+    }
+
     static func makeContainer(storeURL: URL? = nil, inMemory: Bool = false) throws -> ModelContainer {
         let schema = Schema(versionedSchema: TechPulseSchemaV1.self)
         let configuration: ModelConfiguration
@@ -147,7 +154,7 @@ enum PersistenceController {
         } else if let storeURL {
             configuration = ModelConfiguration(schema: schema, url: storeURL)
         } else {
-            configuration = ModelConfiguration(schema: schema)
+            configuration = ModelConfiguration(schema: schema, url: try defaultStoreURL())
         }
         return try ModelContainer(for: schema, migrationPlan: TechPulseMigrationPlan.self, configurations: [configuration])
     }
