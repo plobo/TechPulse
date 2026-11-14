@@ -4,7 +4,8 @@ import SwiftData
 /// Version 1 of the on-device schema. Add `TechPulseSchemaV2` + a migration
 /// stage in `TechPulseMigrationPlan` for any future model change.
 enum TechPulseSchemaV1: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 0, 0)
+    // Computed (not a stored static) so it compiles under SDKs where Schema.Version is not Sendable.
+    static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
 
     static var models: [any PersistentModel.Type] {
         [CachedArticleRecord.self, BookmarkRecord.self, NoteRecord.self, ReadingHistoryRecord.self, PreferencesRecord.self]
