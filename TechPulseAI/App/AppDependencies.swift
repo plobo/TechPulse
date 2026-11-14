@@ -15,6 +15,7 @@ struct AppDependencies: Sendable {
 
     static func live(configuration: AppConfiguration) throws -> AppDependencies {
         let dateProvider = SystemDateProvider()
+        if configuration.resetsStoreOnLaunch { PersistenceController.destroyDefaultStore() }
         let container = try PersistenceController.makeContainer(inMemory: configuration.usesInMemoryStore)
         let library = SwiftDataLibraryRepository(modelContainer: container, dateProvider: dateProvider)
 

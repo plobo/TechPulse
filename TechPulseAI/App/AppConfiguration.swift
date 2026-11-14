@@ -14,6 +14,8 @@ struct AppConfiguration: Sendable, Equatable {
 
     let dataSource: DataSource
     let usesInMemoryStore: Bool
+    /// UI-test only: wipe the on-disk store at launch.
+    let resetsStoreOnLaunch: Bool
 
     init(values: [String: String], arguments: [String] = []) {
         if let raw = values[Self.baseURLKey]?.trimmingCharacters(in: .whitespaces),
@@ -22,7 +24,9 @@ struct AppConfiguration: Sendable, Equatable {
         } else {
             dataSource = .sample
         }
-        usesInMemoryStore = arguments.contains("-ui-testing")
+        let uiTesting = arguments.contains("-ui-testing")
+        usesInMemoryStore = uiTesting && !arguments.contains("-persistent-store")
+        resetsStoreOnLaunch = uiTesting && arguments.contains("-reset-store")
     }
 
     static var current: AppConfiguration {

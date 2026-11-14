@@ -146,6 +146,14 @@ enum PersistenceController {
         return directory.appending(path: "TechPulse.store")
     }
 
+    /// Removes the default store and its sidecar files (UI-test reset only).
+    static func destroyDefaultStore() {
+        guard let url = try? defaultStoreURL() else { return }
+        for suffix in ["", "-shm", "-wal"] {
+            try? FileManager.default.removeItem(at: URL(fileURLWithPath: url.path + suffix))
+        }
+    }
+
     static func makeContainer(storeURL: URL? = nil, inMemory: Bool = false) throws -> ModelContainer {
         let schema = Schema(versionedSchema: TechPulseSchemaV1.self)
         let configuration: ModelConfiguration

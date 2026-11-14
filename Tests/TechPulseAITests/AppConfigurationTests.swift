@@ -24,6 +24,13 @@ struct AppConfigurationTests {
         #expect(config.usesInMemoryStore)
         #expect(!AppConfiguration(values: [:]).usesInMemoryStore)
     }
+
+    @Test func persistentStoreFlagKeepsDiskStoreForRelaunchTests() {
+        let config = AppConfiguration(values: [:], arguments: ["-ui-testing", "-persistent-store", "-reset-store"])
+        #expect(!config.usesInMemoryStore)
+        #expect(config.resetsStoreOnLaunch)
+        #expect(!AppConfiguration(values: [:], arguments: ["-reset-store"]).resetsStoreOnLaunch, "reset only allowed under UI testing")
+    }
 }
 
 @Suite("AppTab")

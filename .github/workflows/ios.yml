@@ -1,0 +1,19 @@
+name: iOS
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Unit tests
+        run: |
+          xcodebuild test -project TechPulseAI.xcodeproj -scheme TechPulseAI \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -only-testing:TechPulseAITests CODE_SIGNING_ALLOWED=NO
