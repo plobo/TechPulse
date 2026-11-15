@@ -18,8 +18,19 @@ targets:
     platform: iOS
     sources:
       - path: TechPulseAI
+    info:
+      path: TechPulseAI/Resources/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Release builds: set the TECHPULSE_API_BASE_URL build setting (HTTPS) to use a backend.
+        TECHPULSE_API_BASE_URL: $(TECHPULSE_API_BASE_URL)
+        NSAppTransportSecurity:
+          # Allows plain HTTP only to local addresses (simulator → local server). Internet traffic still needs HTTPS.
+          NSAllowsLocalNetworking: true
     settings:
       base:
+        TECHPULSE_API_BASE_URL: ""
         PRODUCT_BUNDLE_IDENTIFIER: com.techpulse.ai
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: TechPulse AI

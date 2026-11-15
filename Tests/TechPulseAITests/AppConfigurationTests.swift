@@ -19,6 +19,17 @@ struct AppConfigurationTests {
         #expect(config.dataSource == .sample)
     }
 
+    @Test func debugBuildsAllowPlainHTTPOnlyForLocalhost() {
+        let local = AppConfiguration(values: ["TECHPULSE_API_BASE_URL": "http://localhost:8080"], allowInsecureLocalhost: true)
+        #expect(local.dataSource == .remote(URL(string: "http://localhost:8080")!))
+        let loopback = AppConfiguration(values: ["TECHPULSE_API_BASE_URL": "http://127.0.0.1:8080"], allowInsecureLocalhost: true)
+        #expect(loopback.dataSource == .remote(URL(string: "http://127.0.0.1:8080")!))
+        let remoteHTTP = AppConfiguration(values: ["TECHPULSE_API_BASE_URL": "http://api.example.com"], allowInsecureLocalhost: true)
+        #expect(remoteHTTP.dataSource == .sample)
+        let releaseLocal = AppConfiguration(values: ["TECHPULSE_API_BASE_URL": "http://localhost:8080"], allowInsecureLocalhost: false)
+        #expect(releaseLocal.dataSource == .sample)
+    }
+
     @Test func uiTestingFlagSelectsInMemoryStore() {
         let config = AppConfiguration(values: [:], arguments: ["-ui-testing"])
         #expect(config.usesInMemoryStore)

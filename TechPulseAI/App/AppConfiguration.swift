@@ -19,9 +19,13 @@ struct AppConfiguration: Sendable, Equatable {
     /// UI-test only: use Demo AI and treat AI as enabled.
     let forcesDemoAI: Bool
 
-    init(values: [String: String], arguments: [String] = []) {
+    /// - Parameter allowInsecureLocalhost: Debug builds only — permits `http://localhost` / `127.0.0.1`
+    ///   so the simulator can reach a local TechPulse server. Every other address must be HTTPS.
+    init(values: [String: String], arguments: [String] = [], allowInsecureLocalhost: Bool = false) {
         if let raw = values[Self.baseURLKey]?.trimmingCharacters(in: .whitespaces),
-           let url = URL(string: raw), url.scheme?.lowercased() == "https", url.host != nil {
+           let url = URL(string: raw), let host = url.host()?.lowercased(), !host.isEmpty,
+           url.scheme?.lowercased() == "https"
+            || (allowInsecureLocalhost && url.scheme?.lowercased() == "http" && ["localhost", "127.0.0.1"].contains(host)) {
             dataSource = .remote(url)
         } else {
             dataSource = .sample
@@ -37,6 +41,11 @@ struct AppConfiguration: Sendable, Equatable {
         if let plistValue = Bundle.main.object(forInfoDictionaryKey: baseURLKey) as? String, !plistValue.isEmpty {
             values[baseURLKey] = values[baseURLKey] ?? plistValue
         }
-        return AppConfiguration(values: values, arguments: ProcessInfo.processInfo.arguments)
+        #if DEBUG
+        let allowLocalhost = true
+        #else
+        let allowLocalhost = false
+        #endif
+        return AppConfiguration(values: values, arguments: ProcessInfo.processInfo.arguments, allowInsecureLocalhost: allowLocalhost)
     }
 }

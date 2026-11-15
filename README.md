@@ -29,11 +29,11 @@ open TechPulseAI.xcodeproj # run the TechPulseAI scheme on an iOS 17+ simulator
 
 | Setting | Where | Effect |
 |---|---|---|
-| `TECHPULSE_API_BASE_URL` | Scheme environment variable (Edit Scheme → Run → Environment) | HTTPS base URL of the TechPulse API. If it is unset or not HTTPS, the app uses sample data. |
+| `TECHPULSE_API_BASE_URL` | Scheme environment variable (Edit Scheme → Run → Environment), or the `TECHPULSE_API_BASE_URL` build setting (written into Info.plist) for archived/TestFlight builds | HTTPS base URL of the TechPulse API. **Debug builds also accept `http://localhost` / `http://127.0.0.1`** for a local [TechPulse Server](../TechPulse-Server). If it is unset or invalid, the app uses sample data. |
 | `-ui-testing` | Launch argument | Sample data with an in-memory store |
 | `-persistent-store` / `-reset-store` | Launch arguments (only with `-ui-testing`) | Use a real on-disk store, or wipe it, for relaunch tests |
 
-**Release builds:** the Info.plist is generated (`GENERATE_INFOPLIST_FILE`), so scheme environment variables don't apply to archived/TestFlight builds, and those builds use sample data. Before shipping against a backend, add an `INFOPLIST_FILE` with a `TECHPULSE_API_BASE_URL` key to `project.yml`. `AppConfiguration` already reads that key.
+**Local server:** run [TechPulse Server](../TechPulse-Server) (`npm run dev` or `docker compose up`), then set `TECHPULSE_API_BASE_URL=http://localhost:8080` in the scheme. ATS allows plain HTTP only to local addresses (`NSAllowsLocalNetworking`).
 
 **No secrets live in the app.** AI provider credentials belong on the backend (see `.env.example`).
 
