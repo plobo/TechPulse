@@ -9,7 +9,7 @@ struct AIReaderView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: Spacing.xl) {
-                if dependencies.ai.isAvailable && library.preferences.aiFeaturesEnabled {
+                if false {
                     StateMessageView(title: "No AI conversations yet",
                                      message: "Open an article and choose Ask AI to start. Answers use only the article’s permitted content.",
                                      systemImage: "bubble.left.and.text.bubble.right")

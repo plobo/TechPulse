@@ -55,8 +55,30 @@ struct UserPreferences: Hashable, Sendable, Codable {
     var aiFeaturesEnabled = false
     var personalizationEnabled = true
     var hasCompletedOnboarding = false
+    /// Debug-only: use the Demo AI stand-in instead of the real model.
+    var demoAIEnabled = false
+    /// Count of successful local AI generations (shown in Settings).
+    var aiGenerationCount = 0
 
     static let `default` = UserPreferences()
+
+    init() {}
+
+    /// Tolerant decoding so payloads saved by older versions keep working.
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = UserPreferences()
+        selectedCategoryIDs = try c.decodeIfPresent([CategoryID].self, forKey: .selectedCategoryIDs) ?? d.selectedCategoryIDs
+        followedTechnologies = try c.decodeIfPresent([String].self, forKey: .followedTechnologies) ?? d.followedTechnologies
+        preferredSummaryLength = try c.decodeIfPresent(SummaryLength.self, forKey: .preferredSummaryLength) ?? d.preferredSummaryLength
+        theme = try c.decodeIfPresent(AppTheme.self, forKey: .theme) ?? d.theme
+        notifications = try c.decodeIfPresent(NotificationSettings.self, forKey: .notifications) ?? d.notifications
+        aiFeaturesEnabled = try c.decodeIfPresent(Bool.self, forKey: .aiFeaturesEnabled) ?? d.aiFeaturesEnabled
+        personalizationEnabled = try c.decodeIfPresent(Bool.self, forKey: .personalizationEnabled) ?? d.personalizationEnabled
+        hasCompletedOnboarding = try c.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? d.hasCompletedOnboarding
+        demoAIEnabled = try c.decodeIfPresent(Bool.self, forKey: .demoAIEnabled) ?? d.demoAIEnabled
+        aiGenerationCount = try c.decodeIfPresent(Int.self, forKey: .aiGenerationCount) ?? d.aiGenerationCount
+    }
 }
 
 enum LibraryError: Error, Equatable {

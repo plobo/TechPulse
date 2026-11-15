@@ -16,6 +16,8 @@ struct AppConfiguration: Sendable, Equatable {
     let usesInMemoryStore: Bool
     /// UI-test only: wipe the on-disk store at launch.
     let resetsStoreOnLaunch: Bool
+    /// UI-test only: use Demo AI and treat AI as enabled.
+    let forcesDemoAI: Bool
 
     init(values: [String: String], arguments: [String] = []) {
         if let raw = values[Self.baseURLKey]?.trimmingCharacters(in: .whitespaces),
@@ -27,6 +29,7 @@ struct AppConfiguration: Sendable, Equatable {
         let uiTesting = arguments.contains("-ui-testing")
         usesInMemoryStore = uiTesting && !arguments.contains("-persistent-store")
         resetsStoreOnLaunch = uiTesting && arguments.contains("-reset-store")
+        forcesDemoAI = uiTesting && arguments.contains("-demo-ai")
     }
 
     static var current: AppConfiguration {

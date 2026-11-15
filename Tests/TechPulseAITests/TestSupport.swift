@@ -130,7 +130,8 @@ extension AppDependencies {
         let container = try PersistenceController.makeContainer(inMemory: true)
         return AppDependencies(articles: content, catalog: content, briefing: content,
                                library: SwiftDataLibraryRepository(modelContainer: container, dateProvider: FixedDateProvider(now: TestData.now)),
-                               ai: UnavailableAIService(), dateProvider: FixedDateProvider(now: TestData.now),
+                               ai: AIServices(real: UnavailableAIService(), demo: DemoAIService()),
+                               dateProvider: FixedDateProvider(now: TestData.now),
                                isSampleData: false)
     }
 }

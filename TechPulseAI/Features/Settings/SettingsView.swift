@@ -8,7 +8,7 @@ struct SettingsView: View {
 
     var body: some View {
         SettingsForm(viewModel: SettingsViewModel(library: library, clearNetworkCache: dependencies.clearNetworkCache),
-                     isAIServiceAvailable: dependencies.ai.isAvailable,
+                     isAIServiceAvailable: false,
                      isSampleData: dependencies.isSampleData)
     }
 }
