@@ -23,6 +23,7 @@ struct DiagramSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .task { await viewModel.load() }
+            .onDisappear { viewModel.cancel() }
         }
     }
 
@@ -33,7 +34,11 @@ struct DiagramSheet: View {
                 .font(.footnote).foregroundStyle(.secondary)
             generateButton(title: "Generate Diagram")
         case .loading:
-            ProgressView("Designing on device…")
+            HStack {
+                ProgressView("Designing on device…")
+                Spacer()
+                Button("Cancel") { viewModel.cancel() }
+            }
         case let .failed(message):
             Label(message, systemImage: "exclamationmark.triangle")
             generateButton(title: "Try Again", force: true)

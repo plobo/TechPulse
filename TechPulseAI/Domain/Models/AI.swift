@@ -51,7 +51,9 @@ struct AIArticleInput: Sendable, Hashable {
 
     static func make(from article: Article, budget: Int = AIPrompts.articleBudget) -> AIArticleInput {
         var header = ["Title: \(article.title)", "Source: \(article.sourceName)"]
-        if let summary = article.summary { header.append("Publisher summary: \(summary)") }
+        if let summary = article.summary {
+            header.append("Publisher summary: \(truncate(summary, to: min(summaryCap, max(budget / 3, 80))))")
+        }
         let basis: AIInputBasis
         var body: String?
         switch ArticleBodyPolicy.body(for: article) {
@@ -73,6 +75,13 @@ struct AIArticleInput: Sendable, Hashable {
                               text: text, basis: basis, fingerprint: fingerprint(basis: basis, text: text))
     }
 
+    static let summaryCap = 600
+
+    /// Smaller input used for one retry after the model reports a context overflow.
+    static func reduced(from article: Article) -> AIArticleInput {
+        make(from: article, budget: AIPrompts.articleBudget / 2)
+    }
+
     static func truncate(_ text: String, to limit: Int) -> String {
         guard text.count > limit else { return text }
         var cut = String(text.prefix(limit))
@@ -92,6 +101,8 @@ struct AIMessage: Identifiable, Codable, Sendable, Hashable {
     let role: AIRole
     let content: String
     let timestamp: Date
+    /// Which model wrote an assistant message (nil for user messages and pre-fix data).
+    var provider: AIProviderInfo? = nil
 }
 
 struct AIConversation: Identifiable, Codable, Sendable, Hashable {

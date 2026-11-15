@@ -32,6 +32,9 @@ struct CodeExplainerSheet: View {
                     }
                     .disabled(!viewModel.isEnabled || viewModel.result.isLoading)
                     .accessibilityIdentifier("ai.code.explain")
+                    if viewModel.result.isLoading {
+                        Button("Cancel", role: .cancel) { viewModel.cancel() }
+                    }
                 }
                 result
             }
@@ -39,6 +42,7 @@ struct CodeExplainerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .task { await viewModel.load() }
+            .onDisappear { viewModel.cancel() }
         }
     }
 

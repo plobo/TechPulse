@@ -8,6 +8,7 @@ final class DiagramViewModel {
     let input: AIArticleInput
     private(set) var state: AIOutputState<AIArtifact> = .idle
     private(set) var availability: AIAvailability?
+    private var running: Task<Void, Never>?
     private let runtime: AIRuntime
 
     init(article: Article, dependencies: AppDependencies, library: LibraryStore) {
@@ -33,11 +34,28 @@ final class DiagramViewModel {
         if !force, state.value != nil { return }
         let previous = state
         state = .loading
+        let task = Task { await self.perform(previous: previous) }
+        running = task
+        await task.value
+    }
+
+    func cancel() {
+        running?.cancel()
+    }
+
+    private func perform(previous: AIOutputState<AIArtifact>) async {
         let service = runtime.service
         let input = input
+        let reduced = AIArticleInput.reduced(from: article)
         do {
             let diagram = try await runtime.run(key: "\(article.id)|diagram") {
-                try DiagramValidator.validate(try await service.diagram(for: input))
+                let raw: ArchitectureDiagram
+                do {
+                    raw = try await service.diagram(for: input)
+                } catch AIServiceError.contextTooLarge {
+                    raw = try await service.diagram(for: reduced)
+                }
+                return try DiagramValidator.validate(raw)
             }
             let artifact = AIArtifact(id: UUID(), kind: .diagram, cacheKey: AICacheKey.diagram(input, provider: service.providerInfo),
                                       articleID: article.id, articleTitle: article.title, summaryType: nil, basis: input.basis,

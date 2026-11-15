@@ -39,7 +39,11 @@ final class ArticleAIViewModel {
     func generate(_ type: SummaryType, force: Bool = false) async {
         guard isEnabled else { return }
         if !force, summaries[type]?.value != nil { return }
-        running?.cancel()
+        // Let a cancelled in-flight request unwind (and release the gate) first.
+        if let inFlight = running {
+            inFlight.cancel()
+            await inFlight.value
+        }
         let previous = summaries[type] ?? .idle
         summaries[type] = .loading
         let task = Task { await self.perform(type, previous: previous) }
@@ -54,9 +58,14 @@ final class ArticleAIViewModel {
     private func perform(_ type: SummaryType, previous: AIOutputState<AIArtifact>) async {
         let service = runtime.service
         let input = input
+        let reduced = AIArticleInput.reduced(from: article)
         do {
             let text = try await runtime.run(key: "\(article.id)|summary") {
-                try await service.summarize(input, type: type)
+                do {
+                    return try await service.summarize(input, type: type)
+                } catch AIServiceError.contextTooLarge {
+                    return try await service.summarize(reduced, type: type)
+                }
             }
             let artifact = AIArtifact(id: UUID(), kind: .summary, cacheKey: AICacheKey.summary(input, type: type, provider: service.providerInfo),
                                       articleID: article.id, articleTitle: article.title, summaryType: type, basis: input.basis,

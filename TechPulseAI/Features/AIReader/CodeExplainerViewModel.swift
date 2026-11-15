@@ -8,6 +8,7 @@ final class CodeExplainerViewModel {
     var snippet = ""
     private(set) var result: AIOutputState<AIArtifact> = .idle
     private(set) var availability: AIAvailability?
+    private var running: Task<Void, Never>?
     private let runtime: AIRuntime
 
     init(article: Article?, dependencies: AppDependencies, library: LibraryStore) {
@@ -33,6 +34,16 @@ final class CodeExplainerViewModel {
             return
         }
         result = .loading
+        let task = Task { await self.perform(code) }
+        running = task
+        await task.value
+    }
+
+    func cancel() {
+        running?.cancel()
+    }
+
+    private func perform(_ code: String) async {
         let service = runtime.service
         do {
             let explanation = try await runtime.run(key: "\(article?.id ?? "standalone")|code") {

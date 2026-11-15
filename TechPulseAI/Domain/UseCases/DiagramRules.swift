@@ -62,15 +62,18 @@ enum MermaidGenerator {
     static func source(for diagram: ArchitectureDiagram) -> String {
         var lines = ["flowchart TD"]
         for component in diagram.components {
-            lines.append("    \(component.id)[\"\(escape(component.name))\"]")
+            lines.append("    \(node(component.id))[\"\(escape(component.name))\"]")
         }
         for connection in diagram.connections {
             let label = escape(connection.label)
-            lines.append(label.isEmpty ? "    \(connection.from) --> \(connection.to)"
-                                       : "    \(connection.from) -->|\"\(label)\"| \(connection.to)")
+            lines.append(label.isEmpty ? "    \(node(connection.from)) --> \(node(connection.to))"
+                                       : "    \(node(connection.from)) -->|\"\(label)\"| \(node(connection.to))")
         }
         return lines.joined(separator: "\n")
     }
+
+    /// Prefixed so ids like `end` or `graph` can't collide with Mermaid keywords.
+    static func node(_ id: String) -> String { "n_" + id }
 
     static func escape(_ text: String) -> String {
         DiagramValidator.clean(text, limit: .max)

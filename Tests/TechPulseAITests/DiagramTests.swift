@@ -44,7 +44,7 @@ struct DiagramTests {
         let src = MermaidGenerator.source(for: d)
         #expect(src.hasPrefix("flowchart TD"))
         #expect(src.contains("#quot;"))
-        #expect(src.contains("a -->|\"reads\"| b"))
+        #expect(src.contains("n_a -->|\"reads\"| n_b"))
         #expect(!src.contains("<script"))
     }
 

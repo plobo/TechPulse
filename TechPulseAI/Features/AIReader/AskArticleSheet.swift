@@ -24,7 +24,11 @@ struct AskArticleSheet: View {
                                 bubble(message).id(message.id)
                             }
                             if viewModel.isAnswering {
-                                ProgressView("Thinking on device…").font(.footnote)
+                                HStack {
+                                    ProgressView("Thinking on device…").font(.footnote)
+                                    Spacer()
+                                    Button("Cancel") { viewModel.cancel() }
+                                }
                             }
                         }
                         .padding(Spacing.l)
@@ -42,13 +46,15 @@ struct AskArticleSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .task { await viewModel.load() }
+            .onDisappear { viewModel.cancel() }
         }
     }
 
     private func bubble(_ message: AIMessage) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             if message.role == .assistant {
-                AILabelsRow(provider: viewModel.provider, basis: nil)
+                AILabelsRow(provider: message.provider ?? viewModel.provider, basis: viewModel.conversation.basis,
+                            isSampleData: viewModel.isSampleData)
             }
             Text(message.content).textSelection(.enabled)
         }
