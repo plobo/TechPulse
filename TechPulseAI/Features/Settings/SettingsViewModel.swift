@@ -18,15 +18,42 @@ final class SettingsViewModel {
     let library: LibraryStore
     private let notifications: any NotificationAuthorizing
     private let clearNetworkCache: @Sendable () -> Void
+    private let aiServices: AIServices?
+    private let aiLibrary: (any AILibraryRepository)?
+    private(set) var aiAvailability: AIAvailability?
     private var exportedFiles: [URL] = []
     var notificationMessage: String?
     var storageMessage: String?
 
     init(library: LibraryStore, notifications: any NotificationAuthorizing = SystemNotificationAuthorizer(),
-         clearNetworkCache: @escaping @Sendable () -> Void = {}) {
+         clearNetworkCache: @escaping @Sendable () -> Void = {},
+         aiServices: AIServices? = nil, aiLibrary: (any AILibraryRepository)? = nil) {
         self.library = library
         self.notifications = notifications
         self.clearNetworkCache = clearNetworkCache
+        self.aiServices = aiServices
+        self.aiLibrary = aiLibrary
+    }
+
+    var hasDemoAI: Bool { aiServices?.demo != nil }
+
+    func loadAIAvailability() async {
+        guard let aiServices else { aiAvailability = .unsupportedOS; return }
+        aiAvailability = await aiServices.active(demoEnabled: preferences.demoAIEnabled).availability()
+    }
+
+    func setDemoAI(_ enabled: Bool) async {
+        await library.updatePreferences { $0.demoAIEnabled = enabled }
+        await loadAIAvailability()
+    }
+
+    func clearAIHistory() async {
+        do {
+            try await aiLibrary?.clearAIHistory()
+            storageMessage = "AI history cleared."
+        } catch {
+            storageMessage = "Couldn’t clear AI history. Please try again."
+        }
     }
 
     var preferences: UserPreferences { library.preferences }

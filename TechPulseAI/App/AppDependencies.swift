@@ -17,6 +17,8 @@ struct AppDependencies: Sendable {
     var clearNetworkCache: @Sendable () -> Void = {}
     /// Shared throttle for AI requests (one per key, bounded per minute).
     var aiGate = AIRequestGate()
+    /// UI tests: Demo AI active and AI treated as enabled.
+    var forcesDemoAI = false
 
     static func live(configuration: AppConfiguration) throws -> AppDependencies {
         let dateProvider = SystemDateProvider()
@@ -28,15 +30,19 @@ struct AppDependencies: Sendable {
         switch configuration.dataSource {
         case .sample:
             let sample = SampleContentRepository(fixtures: try SampleFixtures.load(from: .main), dateProvider: dateProvider)
-            return AppDependencies(articles: sample, catalog: sample, briefing: sample, library: library, aiLibrary: library,
-                                   ai: ai, dateProvider: dateProvider, isSampleData: true)
+            var deps = AppDependencies(articles: sample, catalog: sample, briefing: sample, library: library, aiLibrary: library,
+                                       ai: ai, dateProvider: dateProvider, isSampleData: true)
+            deps.forcesDemoAI = configuration.forcesDemoAI
+            return deps
         case let .remote(baseURL):
             let session = makeSession()
             let client = APIClient(baseURL: baseURL, http: session)
             let remote = RemoteContentRepository(client: client, dateProvider: dateProvider)
-            return AppDependencies(articles: remote, catalog: remote, briefing: remote, library: library, aiLibrary: library,
-                                   ai: ai, dateProvider: dateProvider, isSampleData: false,
-                                   clearNetworkCache: { session.configuration.urlCache?.removeAllCachedResponses() })
+            var deps = AppDependencies(articles: remote, catalog: remote, briefing: remote, library: library, aiLibrary: library,
+                                       ai: ai, dateProvider: dateProvider, isSampleData: false,
+                                       clearNetworkCache: { session.configuration.urlCache?.removeAllCachedResponses() })
+            deps.forcesDemoAI = configuration.forcesDemoAI
+            return deps
         }
     }
 
