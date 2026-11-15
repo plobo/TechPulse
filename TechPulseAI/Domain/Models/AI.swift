@@ -1,43 +1,128 @@
+import CryptoKit
 import Foundation
 
-enum SummaryType: String, Sendable, Codable, Hashable {
+/// What article text the model was allowed to see (publisher rules via `ArticleBodyPolicy`).
+enum AIInputBasis: String, Codable, Sendable, Hashable {
+    case fullText, excerptOnly, metadataOnly
+
+    /// Visible label when the AI did not see the full article; nil for full text.
+    var label: String? {
+        switch self {
+        case .fullText: nil
+        case .excerptOnly: "Based on the excerpt only"
+        case .metadataOnly: "Based on title and summary only"
+        }
+    }
+}
+
+enum SummaryType: String, Codable, Sendable, CaseIterable, Hashable {
     case thirtySeconds, twoMinutes, detailed
+
+    var title: String {
+        switch self {
+        case .thirtySeconds: "30-second"
+        case .twoMinutes: "2-minute"
+        case .detailed: "Detailed"
+        }
+    }
+
+    init(_ length: SummaryLength) {
+        switch length {
+        case .thirtySeconds: self = .thirtySeconds
+        case .twoMinutes: self = .twoMinutes
+        case .detailed: self = .detailed
+        }
+    }
 }
 
-struct AIProviderInfo: Sendable, Hashable, Codable {
-    let provider: String
-    let model: String
-    let promptVersion: String
+enum AIFeature: String, Codable, Sendable, Hashable {
+    case summary, question, codeExplanation, diagram
 }
 
-/// AI-generated article summary. Always rendered with `GeneratedContentBadge`.
-struct ArticleSummary: Sendable, Hashable, Codable {
+/// The permitted, budgeted article text handed to a model.
+struct AIArticleInput: Sendable, Hashable {
     let articleID: ArticleID
-    let type: SummaryType
+    let title: String
+    let sourceName: String
     let text: String
-    let providerInfo: AIProviderInfo
-    let createdAt: Date
+    let basis: AIInputBasis
+    /// SHA-256 of basis + text; changes when the permitted input changes.
+    let fingerprint: String
+
+    static func make(from article: Article, budget: Int = AIPrompts.articleBudget) -> AIArticleInput {
+        var header = ["Title: \(article.title)", "Source: \(article.sourceName)"]
+        if let summary = article.summary { header.append("Publisher summary: \(summary)") }
+        let basis: AIInputBasis
+        var body: String?
+        switch ArticleBodyPolicy.body(for: article) {
+        case let .full(text):
+            basis = .fullText
+            body = text
+        case let .excerpt(text):
+            basis = .excerptOnly
+            body = text
+        case .linkOnly:
+            basis = .metadataOnly
+        }
+        var text = header.joined(separator: "\n")
+        if let body {
+            let remaining = max(budget - text.count - 2, 0)
+            text += "\n\n" + truncate(body, to: remaining)
+        }
+        return AIArticleInput(articleID: article.id, title: article.title, sourceName: article.sourceName,
+                              text: text, basis: basis, fingerprint: fingerprint(basis: basis, text: text))
+    }
+
+    static func truncate(_ text: String, to limit: Int) -> String {
+        guard text.count > limit else { return text }
+        var cut = String(text.prefix(limit))
+        if let space = cut.lastIndex(where: \.isWhitespace) { cut = String(cut[..<space]) }
+        return cut + " [truncated]"
+    }
+
+    static func fingerprint(basis: AIInputBasis, text: String) -> String {
+        SHA256.hash(data: Data((basis.rawValue + "\n" + text).utf8)).map { String(format: "%02x", $0) }.joined()
+    }
 }
 
-enum AIRole: String, Sendable, Codable { case user, assistant }
+enum AIRole: String, Codable, Sendable { case user, assistant }
 
-struct AIMessage: Identifiable, Sendable, Hashable, Codable {
+struct AIMessage: Identifiable, Codable, Sendable, Hashable {
     let id: UUID
     let role: AIRole
     let content: String
     let timestamp: Date
-    let referencedArticleIDs: [ArticleID]
 }
 
-struct AIConversation: Identifiable, Sendable, Hashable, Codable {
+struct AIConversation: Identifiable, Codable, Sendable, Hashable {
     let id: UUID
     let articleID: ArticleID?
+    let articleTitle: String?
+    let basis: AIInputBasis?
     var messages: [AIMessage]
+    var updatedAt: Date
 }
 
-enum AIServiceError: Error, Equatable {
-    /// No backend AI endpoint configured or the user has not enabled AI features.
+enum AIServiceError: Error, Equatable, Sendable {
     case unavailable
     case rateLimited
+    case busy
     case requestTooLarge
+    case contextTooLarge
+    case guardrail
+    case invalidDiagram(String)
+    case generationFailed
+
+    var message: String {
+        switch self {
+        case .unavailable: "AI isn’t available on this device."
+        case .rateLimited: "Too many AI requests. Please wait a moment."
+        case .busy: "Already working on this. Please wait."
+        case .requestTooLarge: "That’s too long (or empty). Please shorten it."
+        case .contextTooLarge: "This is too long for the on-device model."
+        case .guardrail: "The on-device model declined this request."
+        case let .invalidDiagram(reason): "The generated diagram wasn’t valid (\(reason)). Try again."
+        case .generationFailed: "The AI couldn’t generate a response. Try again."
+        }
+    }
 }
