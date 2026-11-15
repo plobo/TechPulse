@@ -33,7 +33,7 @@ open TechPulseAI.xcodeproj # run the TechPulseAI scheme on an iOS 17+ simulator
 | `-ui-testing` | Launch argument | Sample data with an in-memory store |
 | `-persistent-store` / `-reset-store` | Launch arguments (only with `-ui-testing`) | Use a real on-disk store, or wipe it, for relaunch tests |
 
-**Local server:** run [TechPulse Server](../TechPulse-Server) (`npm run dev` or `docker compose up`), then set `TECHPULSE_API_BASE_URL=http://localhost:8080` in the scheme. ATS allows plain HTTP only to local addresses (`NSAllowsLocalNetworking`).
+**Local server (default for Run):** the `TechPulseAI` scheme's Run action sets `TECHPULSE_API_BASE_URL=http://localhost:8080` (in `project.yml`). Start [TechPulse Server](../TechPulse-Server) first (`docker compose up -d` or `npm run dev`); if it isn't running, Discover shows "Service unavailable". Remove that variable from `project.yml` (or the scheme) to go back to sample data. Tests use their own environment, so they never depend on the local server. ATS allows plain HTTP only to local addresses (`NSAllowsLocalNetworking`).
 
 **No secrets live in the app.** AI provider credentials belong on the backend (see `.env.example`).
 

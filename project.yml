@@ -76,5 +76,12 @@ schemes:
         - TechPulseAITests
         - TechPulseAIUITests
       gatherCoverageData: true
+      # Own environment so tests don't inherit the Run action's local-server URL (CI has no server).
+      environmentVariables:
+        TECHPULSE_TESTS: "1"
     run:
       config: Debug
+      # Local TechPulse Server (docker compose up / npm run dev). Debug-only: http is allowed for localhost.
+      # Remove or change this to use sample data or a hosted HTTPS server.
+      environmentVariables:
+        TECHPULSE_API_BASE_URL: http://localhost:8080
