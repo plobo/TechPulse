@@ -3,7 +3,7 @@ import SwiftData
 
 /// SwiftData-backed library. Runs on its own model actor; only Sendable domain
 /// values cross the actor boundary.
-actor SwiftDataLibraryRepository: LibraryRepository {
+actor SwiftDataLibraryRepository: LibraryRepository, AILibraryRepository {
     nonisolated let modelContainer: ModelContainer
     private let context: ModelContext
     private let dateProvider: any DateProvider
@@ -125,7 +125,8 @@ actor SwiftDataLibraryRepository: LibraryRepository {
 
     func exportData() throws -> Data {
         let export = LibraryExport(exportedAt: dateProvider.now, bookmarks: try bookmarks(), notes: try allNotes(),
-                                   history: try history(), preferences: try preferences())
+                                   history: try history(), preferences: try preferences(),
+                                   ai: try recentAIActivity(limit: .max))
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
@@ -138,6 +139,8 @@ actor SwiftDataLibraryRepository: LibraryRepository {
         try context.delete(model: ReadingHistoryRecord.self)
         try context.delete(model: CachedArticleRecord.self)
         try context.delete(model: PreferencesRecord.self)
+        try context.delete(model: AIArtifactRecord.self)
+        try context.delete(model: AIConversationRecord.self)
         try context.save()
     }
 
@@ -156,6 +159,82 @@ actor SwiftDataLibraryRepository: LibraryRepository {
         } else {
             context.insert(PreferencesRecord(payload: payload))
         }
+        try context.save()
+    }
+
+    // MARK: AI history
+
+    private static let aiEncoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }()
+
+    private static func decode<T: Decodable>(_ type: T.Type, _ data: Data) -> T? {
+        try? JSONDecoder.techPulse.decode(type, from: data)
+    }
+
+    func artifact(cacheKey: String) throws -> AIArtifact? {
+        let key = cacheKey
+        guard let record = try context.fetch(FetchDescriptor<AIArtifactRecord>(predicate: #Predicate { $0.cacheKey == key })).first
+        else { return nil }
+        return Self.decode(AIArtifact.self, record.payload)
+    }
+
+    func saveArtifact(_ artifact: AIArtifact) throws {
+        let key = artifact.cacheKey
+        let payload = try Self.aiEncoder.encode(artifact)
+        if let existing = try context.fetch(FetchDescriptor<AIArtifactRecord>(predicate: #Predicate { $0.cacheKey == key })).first {
+            existing.artifactID = artifact.id
+            existing.articleID = artifact.articleID
+            existing.kindRaw = artifact.kind.rawValue
+            existing.createdAt = artifact.createdAt
+            existing.payload = payload
+        } else {
+            context.insert(AIArtifactRecord(artifactID: artifact.id, cacheKey: key, articleID: artifact.articleID,
+                                            kindRaw: artifact.kind.rawValue, createdAt: artifact.createdAt, payload: payload))
+        }
+        try context.save()
+    }
+
+    func conversation(articleID: ArticleID) throws -> AIConversation? {
+        let id: String? = articleID
+        var descriptor = FetchDescriptor<AIConversationRecord>(predicate: #Predicate { $0.articleID == id },
+                                                              sortBy: [SortDescriptor(\.updatedAt, order: .reverse)])
+        descriptor.fetchLimit = 1
+        return try context.fetch(descriptor).first.flatMap { Self.decode(AIConversation.self, $0.payload) }
+    }
+
+    func saveConversation(_ conversation: AIConversation) throws {
+        let id = conversation.id
+        let payload = try Self.aiEncoder.encode(conversation)
+        if let existing = try context.fetch(FetchDescriptor<AIConversationRecord>(predicate: #Predicate { $0.conversationID == id })).first {
+            existing.updatedAt = conversation.updatedAt
+            existing.payload = payload
+        } else {
+            context.insert(AIConversationRecord(conversationID: id, articleID: conversation.articleID,
+                                                updatedAt: conversation.updatedAt, payload: payload))
+        }
+        try context.save()
+    }
+
+    func recentAIActivity(limit: Int) throws -> [AIActivityItem] {
+        let artifacts = try context.fetch(FetchDescriptor<AIArtifactRecord>())
+            .compactMap { Self.decode(AIArtifact.self, $0.payload) }.map(AIActivityItem.artifact)
+        let conversations = try context.fetch(FetchDescriptor<AIConversationRecord>())
+            .compactMap { Self.decode(AIConversation.self, $0.payload) }.map(AIActivityItem.conversation)
+        return Array((artifacts + conversations).sorted { $0.date > $1.date }.prefix(max(limit, 0)))
+    }
+
+    func deleteAIItem(id: UUID) throws {
+        try context.delete(model: AIArtifactRecord.self, where: #Predicate { $0.artifactID == id })
+        try context.delete(model: AIConversationRecord.self, where: #Predicate { $0.conversationID == id })
+        try context.save()
+    }
+
+    func clearAIHistory() throws {
+        try context.delete(model: AIArtifactRecord.self)
+        try context.delete(model: AIConversationRecord.self)
         try context.save()
     }
 

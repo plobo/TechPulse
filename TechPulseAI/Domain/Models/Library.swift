@@ -93,4 +93,6 @@ struct LibraryExport: Codable, Sendable {
     let notes: [ArticleNote]
     let history: [ReadingHistoryEntry]
     let preferences: UserPreferences
+    /// On-device AI history; absent in exports from before Milestone 4.
+    var ai: [AIActivityItem]?
 }

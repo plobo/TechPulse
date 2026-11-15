@@ -128,8 +128,9 @@ actor StubContentRepository: ArticleRepository, CatalogRepository, BriefingRepos
 extension AppDependencies {
     static func test(content: StubContentRepository = StubContentRepository()) throws -> AppDependencies {
         let container = try PersistenceController.makeContainer(inMemory: true)
+        let repo = SwiftDataLibraryRepository(modelContainer: container, dateProvider: FixedDateProvider(now: TestData.now))
         return AppDependencies(articles: content, catalog: content, briefing: content,
-                               library: SwiftDataLibraryRepository(modelContainer: container, dateProvider: FixedDateProvider(now: TestData.now)),
+                               library: repo, aiLibrary: repo,
                                ai: AIServices(real: UnavailableAIService(), demo: DemoAIService()),
                                dateProvider: FixedDateProvider(now: TestData.now),
                                isSampleData: false)

@@ -52,3 +52,15 @@ protocol LibraryRepository: Sendable {
     func preferences() async throws -> UserPreferences
     func savePreferences(_ preferences: UserPreferences) async throws
 }
+
+/// On-device AI history (summaries, explanations, diagrams, conversations).
+protocol AILibraryRepository: Sendable {
+    func artifact(cacheKey: String) async throws -> AIArtifact?
+    /// Upserts by `cacheKey`.
+    func saveArtifact(_ artifact: AIArtifact) async throws
+    func conversation(articleID: ArticleID) async throws -> AIConversation?
+    func saveConversation(_ conversation: AIConversation) async throws
+    func recentAIActivity(limit: Int) async throws -> [AIActivityItem]
+    func deleteAIItem(id: UUID) async throws
+    func clearAIHistory() async throws
+}

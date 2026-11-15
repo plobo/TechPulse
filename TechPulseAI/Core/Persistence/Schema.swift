@@ -128,6 +128,53 @@ enum TechPulseSchemaV1: VersionedSchema {
     }
 }
 
+/// Version 2 adds on-device AI history. V1 models are reused unchanged.
+enum TechPulseSchemaV2: VersionedSchema {
+    static var versionIdentifier: Schema.Version { Schema.Version(2, 0, 0) }
+
+    static var models: [any PersistentModel.Type] {
+        TechPulseSchemaV1.models + [AIArtifactRecord.self, AIConversationRecord.self]
+    }
+
+    /// AI output; the full `AIArtifact` is stored as JSON in `payload`.
+    @Model
+    final class AIArtifactRecord {
+        @Attribute(.unique) var artifactID: UUID
+        @Attribute(.unique) var cacheKey: String
+        var articleID: String?
+        var kindRaw: String
+        var createdAt: Date
+        var payload: Data
+
+        init(artifactID: UUID, cacheKey: String, articleID: String?, kindRaw: String, createdAt: Date, payload: Data) {
+            self.artifactID = artifactID
+            self.cacheKey = cacheKey
+            self.articleID = articleID
+            self.kindRaw = kindRaw
+            self.createdAt = createdAt
+            self.payload = payload
+        }
+    }
+
+    /// Ask-this-article conversation; the full `AIConversation` is stored as JSON.
+    @Model
+    final class AIConversationRecord {
+        @Attribute(.unique) var conversationID: UUID
+        var articleID: String?
+        var updatedAt: Date
+        var payload: Data
+
+        init(conversationID: UUID, articleID: String?, updatedAt: Date, payload: Data) {
+            self.conversationID = conversationID
+            self.articleID = articleID
+            self.updatedAt = updatedAt
+            self.payload = payload
+        }
+    }
+}
+
+typealias AIArtifactRecord = TechPulseSchemaV2.AIArtifactRecord
+typealias AIConversationRecord = TechPulseSchemaV2.AIConversationRecord
 typealias CachedArticleRecord = TechPulseSchemaV1.CachedArticleRecord
 typealias BookmarkRecord = TechPulseSchemaV1.BookmarkRecord
 typealias NoteRecord = TechPulseSchemaV1.NoteRecord
@@ -135,8 +182,10 @@ typealias ReadingHistoryRecord = TechPulseSchemaV1.ReadingHistoryRecord
 typealias PreferencesRecord = TechPulseSchemaV1.PreferencesRecord
 
 enum TechPulseMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [TechPulseSchemaV1.self] }
-    static var stages: [MigrationStage] { [] }
+    static var schemas: [any VersionedSchema.Type] { [TechPulseSchemaV1.self, TechPulseSchemaV2.self] }
+    static var stages: [MigrationStage] {
+        [.lightweight(fromVersion: TechPulseSchemaV1.self, toVersion: TechPulseSchemaV2.self)]
+    }
 }
 
 enum PersistenceController {
@@ -156,7 +205,7 @@ enum PersistenceController {
     }
 
     static func makeContainer(storeURL: URL? = nil, inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: TechPulseSchemaV1.self)
+        let schema = Schema(versionedSchema: TechPulseSchemaV2.self)
         let configuration: ModelConfiguration
         if inMemory {
             configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
