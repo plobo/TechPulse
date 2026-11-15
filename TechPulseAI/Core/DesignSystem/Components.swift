@@ -110,3 +110,52 @@ struct StateMessageView: View {
         }
     }
 }
+
+/// Marks Demo AI stand-in output so it can never pass as real model output.
+struct DemoAIBadge: View {
+    var body: some View {
+        Label("Demo AI — fake output", systemImage: "theatermasks")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.red)
+            .accessibilityLabel("Demo AI, fake output")
+            .accessibilityIdentifier("ai.label.demo")
+    }
+}
+
+/// Shows when the AI saw less than the full article.
+struct InputBasisLabel: View {
+    let basis: AIInputBasis?
+
+    var body: some View {
+        if let label = basis?.label {
+            Label(label, systemImage: "doc.text.magnifyingglass")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("ai.label.basis")
+        }
+    }
+}
+
+/// Provenance row shown with every AI output.
+struct AILabelsRow: View {
+    let provider: AIProviderInfo
+    let basis: AIInputBasis?
+    var isSampleData = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.s) { badges }
+                VStack(alignment: .leading, spacing: Spacing.xs) { badges }
+            }
+            InputBasisLabel(basis: basis)
+            Text("Model: \(provider.provider)").font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var badges: some View {
+        GeneratedContentBadge()
+        if provider.isDemo { DemoAIBadge() }
+        if isSampleData { SampleDataBadge() }
+    }
+}

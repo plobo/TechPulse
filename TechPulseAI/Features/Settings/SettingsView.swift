@@ -7,15 +7,14 @@ struct SettingsView: View {
     init(dependencies: AppDependencies) { self.dependencies = dependencies }
 
     var body: some View {
-        SettingsForm(viewModel: SettingsViewModel(library: library, clearNetworkCache: dependencies.clearNetworkCache),
-                     isAIServiceAvailable: false,
+        SettingsForm(viewModel: SettingsViewModel(library: library, clearNetworkCache: dependencies.clearNetworkCache,
+                                                  aiServices: dependencies.ai, aiLibrary: dependencies.aiLibrary),
                      isSampleData: dependencies.isSampleData)
     }
 }
 
 private struct SettingsForm: View {
     @State var viewModel: SettingsViewModel
-    let isAIServiceAvailable: Bool
     let isSampleData: Bool
     @State private var newTechnology = ""
     @State private var exportURL: URL?
@@ -107,21 +106,36 @@ private struct SettingsForm: View {
         }
     }
 
+    private var isAIServiceAvailable: Bool { viewModel.aiAvailability == .available }
+
     private var ai: some View {
         Section {
             Toggle("AI features", isOn: binding(prefs.aiFeaturesEnabled) { await viewModel.setAIFeatures($0) })
                 .disabled(!isAIServiceAvailable)
+                .accessibilityIdentifier("settings.aiFeatures")
             Picker("Preferred summary length", selection: binding(prefs.preferredSummaryLength) { await viewModel.setSummaryLength($0) }) {
                 ForEach(SummaryLength.allCases, id: \.self) { Text($0.title).tag($0) }
             }
             .disabled(!isAIServiceAvailable)
+            #if DEBUG
+            if viewModel.hasDemoAI {
+                Toggle(isOn: binding(prefs.demoAIEnabled) { await viewModel.setDemoAI($0) }) {
+                    VStack(alignment: .leading) {
+                        Text("Demo AI — fake output")
+                        Text("Debug builds only. Uses canned answers instead of the model.").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("settings.demoAI")
+            }
+            #endif
+            LabeledContent("Local AI generations", value: "\(prefs.aiGenerationCount)")
         } header: {
             Text("AI & Privacy")
         } footer: {
-            Text(isAIServiceAvailable
-                 ? "Article text is processed by the TechPulse backend’s AI provider only when you request it. Your notes and history are never sent."
-                 : "AI features aren’t available in this version. Everything else works without AI.")
+            Text((viewModel.aiAvailability.map { $0 == .available ? "Runs on Apple’s on-device model; article text never leaves your phone. Your notes and history are never sent." : $0.message }
+                  ?? "Checking on-device AI…"))
         }
+        .task { await viewModel.loadAIAvailability() }
     }
 
     private var data: some View {
@@ -132,6 +146,7 @@ private struct SettingsForm: View {
             }
             Button("Clear Article Cache") { Task { await viewModel.clearCache() } }
             Button("Clear Reading History") { Task { await viewModel.clearHistory() } }
+            Button("Clear AI History") { Task { await viewModel.clearAIHistory() } }
             Button("Delete All Data", role: .destructive) { confirmDeleteAll = true }
                 .accessibilityIdentifier("settings.deleteAll")
         } header: {

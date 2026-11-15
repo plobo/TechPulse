@@ -82,7 +82,7 @@ struct ArticleDetailView: View {
                 }
                 articleBody(article)
                 openOriginalButton(article)
-                AISummaryPanel(isAvailable: viewModel.isAIAvailable)
+                ArticleAISection(article: article, dependencies: dependencies, library: viewModel.library)
                 if !article.tags.isEmpty { tags(article) }
                 notesSection
                 if !viewModel.related.isEmpty { relatedSection }
@@ -199,24 +199,6 @@ struct ArticleDetailView: View {
                 .buttonStyle(.plain)
             }
         }
-    }
-}
-
-/// Placeholder for Phase 2 AI summaries. Never shows fabricated content.
-struct AISummaryPanel: View {
-    let isAvailable: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Label("AI summary", systemImage: "wand.and.stars").font(.headline)
-            Text(isAvailable
-                 ? "AI summaries will appear here, clearly labelled as generated."
-                 : "AI summaries and Q&A aren’t available yet. Reading, notes and bookmarks work without AI.")
-                .font(.footnote).foregroundStyle(.secondary)
-        }
-        .cardStyle()
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("detail.aiPanel")
     }
 }
 

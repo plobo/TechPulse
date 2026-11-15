@@ -8,7 +8,7 @@ It has five tabs, a personalized Discover feed with a daily briefing, Explore an
 
 > **Sample data:** no TechPulse backend exists yet, so the app ships with bundled **sample content** (`TechPulseAI/Resources/SampleContent.json`). The content is not real news, every link points to `example.com`, and the UI marks it with a "Sample data" banner and badges.
 
-AI features (Milestone 4) are **not implemented**. Only the provider-neutral `AIService` protocol, an `UnavailableAIService`, and AI Reader empty states exist. Core reading works without AI.
+**Milestone 4 (AI Reader)** adds on-device AI using Apple's Foundation Models framework: summaries at three lengths, Ask-this-article, code explanation and architecture diagrams. See [AI Reader](#ai-reader-milestone-4) below. Core reading works without AI.
 
 ## Requirements
 
@@ -113,8 +113,31 @@ No test depends on live third-party feeds. CI (`.github/workflows/ios.yml`) runs
 - All user data stays on the device. Profile → Data & Storage exports it as JSON, clears the cache or history, or deletes everything.
 - The app collects no analytics. Notification permission is requested only when a notification toggle is switched on.
 
+## AI Reader (Milestone 4)
+
+Design: [`docs/superpowers/specs/2026-11-14-milestone-4-ai-reader-design.md`](docs/superpowers/specs/2026-11-14-milestone-4-ai-reader-design.md)
+
+Plan: [`docs/superpowers/plans/2026-11-14-milestone-4-ai-reader.md`](docs/superpowers/plans/2026-11-14-milestone-4-ai-reader.md)
+
+- **Provider:** Apple's on-device model (`FoundationModelsAIService`). It needs **iOS 26 on an Apple Intelligence device with Apple Intelligence turned on**. There's no server and no API keys, and article text never leaves the phone. On other devices or iOS versions the app explains why AI isn't available, and everything else still works. FoundationModels is weak-linked, so the app still runs on iOS 17–18.
+- **Features:**
+  - Summaries: 30-second, 2-minute or detailed.
+  - Ask this article: multi-turn Q&A that says when the article doesn't cover a question.
+  - Code explanation: works on pasted code and ends with a fixed caveat.
+  - Architecture diagrams: structured model output, validated, drawn natively in SwiftUI, with a VoiceOver text version and copy/share of the Mermaid source. There's no web view.
+- **Safety and labels:**
+  - Every output carries **AI-generated**, the model name and, when relevant, **Based on the excerpt only** / **Based on title and summary only** and **Sample data**.
+  - The model only sees what `ArticleBodyPolicy` allows.
+  - Article text is fenced as untrusted data.
+  - Notes and history are never included.
+  - Requests are throttled: one at a time per article, plus a per-minute limit.
+- **Storage:** summaries, diagrams, code explanations and conversations are saved on the device (SwiftData schema V2, migrated from V1). They're listed in the AI Reader tab, included in Export My Data, and removed by Delete All Data or Clear AI History.
+- **Demo AI (Debug builds only):** a stand-in that returns obviously fake canned output marked **Demo AI — fake output**. Turn it on in Profile → AI & Privacy, or with the launch arguments `-ui-testing -demo-ai`, which UI tests use. It isn't compiled into Release builds.
+
+> ⚠️ **Verification status:** the real on-device model's output has **not** been run or checked. This project was built on an Intel Mac, whose simulator can't run Apple's model. All automated tests use Demo AI or test doubles; the real service is compile-verified only. Run it on an iOS 26 Apple Intelligence iPhone before relying on its output.
+
 ## Roadmap
 
-- **M4 AI Reader:** a backend `AIService`, three summary lengths, article Q&A grounded in permitted content, code explanation, and validated Mermaid diagrams, all with generated-content labels, caching and cost controls.
+- **M4 follow-ups:** verify and tune prompts on a real Apple Intelligence device, stream responses, send selected reader text to the code explainer, and optionally add a backend `AIService`.
 - **M5:** performance profiling, security review, App Store assets.
 - **Later:** APNs digests, WidgetKit, App Intents, recommendation feedback.

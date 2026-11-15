@@ -42,7 +42,6 @@ final class ArticleDetailViewModel {
     }
 
     var isBookmarked: Bool { library.isBookmarked(articleID) }
-    var isAIAvailable: Bool { false }
 
     func load() async {
         if article.value == nil { article = .loading }
