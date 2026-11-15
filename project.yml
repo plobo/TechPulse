@@ -28,6 +28,8 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
         ENABLE_PREVIEWS: YES
+        # FoundationModels is iOS 26+; weak-link so the app still launches on iOS 17–18.
+        OTHER_LDFLAGS: "$(inherited) -weak_framework FoundationModels"
   TechPulseAITests:
     type: bundle.unit-test
     platform: iOS

@@ -49,7 +49,10 @@ struct AppDependencies: Sendable {
     }
 
     static func makeRealAIService() -> any AIService {
-        UnavailableAIService(reason: .unsupportedOS)
+        #if canImport(FoundationModels)
+        if #available(iOS 26, *) { return FoundationModelsAIService() }
+        #endif
+        return UnavailableAIService(reason: .unsupportedOS)
     }
 
     /// URLSession with bounded memory/disk caches for feed responses and images.

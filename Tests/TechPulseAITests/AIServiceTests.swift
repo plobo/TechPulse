@@ -76,3 +76,14 @@ struct AIServiceTests {
         #expect(!AppConfiguration(values: [:], arguments: ["-demo-ai"]).forcesDemoAI)
     }
 }
+
+@Suite("AI availability mapping")
+struct AIAvailabilityMappingTests {
+    @Test func availabilityMapperCoversAllReasons() {
+        #expect(AIAvailabilityMapper.map(isAvailable: true, reason: nil) == .available)
+        #expect(AIAvailabilityMapper.map(isAvailable: false, reason: "deviceNotEligible") == .deviceNotEligible)
+        #expect(AIAvailabilityMapper.map(isAvailable: false, reason: "appleIntelligenceNotEnabled") == .appleIntelligenceNotEnabled)
+        #expect(AIAvailabilityMapper.map(isAvailable: false, reason: "modelNotReady") == .modelNotReady)
+        #expect(AIAvailabilityMapper.map(isAvailable: false, reason: "somethingNew") == .deviceNotEligible)
+    }
+}
